@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stop Undercharging Calculator | Mission to Monetize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B0C08;--ink-soft:#13140F;--panel:#1A1C14;
+  --cream:#F0EBD8;--cream-muted:#8A8470;
+  --rose:#C9A84C;--rose-light:#DDB96A;--rose-deep:#8B6E2A;
+  --line:rgba(201,168,76,.22);--line-soft:rgba(240,235,216,.08);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(201,168,76,.08), transparent 55%),
+    var(--ink);
+  color:var(--cream);
+  font-family:var(--sans);
+  line-height:1.55;
+  min-height:100vh;
+  padding:0 0 80px;
+}
+
+/* ── progress ── */
+.progress-wrap{
+  position:sticky;top:0;z-index:10;
+  background:rgba(14,14,16,.92);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:14px 20px;
+}
+.progress-inner{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.brand-sm{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--rose-light);white-space:nowrap;font-weight:600}
+.steps-row{display:flex;gap:6px;flex:1}
+.step-pip{flex:1;height:3px;border-radius:2px;background:rgba(201,168,76,.18);transition:background .4s}
+.step-pip.done{background:var(--rose)}
+.step-pip.active{background:linear-gradient(90deg,var(--rose-light),var(--rose))}
+.step-label{font-size:11px;color:var(--cream-muted);white-space:nowrap}
+
+/* ── hero ── */
+.hero-wrap{max-width:620px;margin:0 auto;padding:40px 20px 28px;text-align:center}
+.hero{font-family:var(--serif);font-weight:600;font-size:clamp(30px,8vw,48px);line-height:1.05;letter-spacing:-.01em;margin-bottom:12px}
+.hero em{font-style:italic;color:var(--rose-light)}
+.hero-sub{font-size:15px;color:var(--cream-muted);max-width:420px;margin:0 auto}
+
+/* ── stage ── */
+.stage{display:none;max-width:620px;margin:0 auto;padding:0 20px}
+.stage.active{display:block;animation:rise .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── eyebrow ── */
+.eyebrow{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--rose);font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ── panel ── */
+.panel{background:linear-gradient(160deg,var(--ink-soft),var(--panel));border:1px solid var(--line);border-radius:20px;padding:26px 22px}
+
+/* ── fields ── */
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:7px;font-weight:500}
+.field input,.field select{width:100%;background:#0D0E09;border:1px solid rgba(245,239,231,.10);color:var(--cream);font-family:var(--sans);font-size:15px;padding:13px 15px;border-radius:12px;outline:none;transition:border-color .18s,box-shadow .18s}
+.field input::placeholder{color:#6A6455}
+.field input:focus,.field select:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(201,168,76,.14)}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.hint{font-size:12px;color:#6A6455;margin-top:5px}
+.row2{display:flex;gap:12px}
+.row2 .field{flex:1}
+
+/* ── button ── */
+.btn{width:100%;border:none;cursor:pointer;margin-top:10px;background:linear-gradient(105deg,var(--rose-light),var(--rose) 55%,var(--rose-deep));color:#1A0F12;font-family:var(--sans);font-weight:600;font-size:16px;padding:17px;border-radius:14px;box-shadow:0 8px 28px rgba(201,168,76,.22);transition:transform .15s,box-shadow .15s,filter .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 34px rgba(201,168,76,.28);filter:brightness(1.04)}
+.btn:active{transform:translateY(0)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--cream-muted);font-family:var(--sans);font-weight:500;font-size:14px;padding:11px 20px;border-radius:12px;cursor:pointer;transition:border-color .15s,color .15s}
+.btn-ghost:hover{border-color:var(--rose);color:var(--rose-light)}
+
+/* ── status ── */
+.status{text-align:center;font-size:14px;color:#E0A0A8;margin-top:16px;display:none}
+.status.show{display:block}
+
+/* ── verdict hero ── */
+.verdict-hero{text-align:center;padding:28px 20px 16px}
+.verdict-eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--rose-light);font-weight:600;margin-bottom:10px}
+.verdict-price{font-family:var(--serif);font-weight:700;font-size:clamp(64px,20vw,96px);line-height:1;background:linear-gradient(105deg,#F0D080,var(--rose) 55%,var(--rose-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.verdict-product{font-size:14px;color:var(--cream-muted);margin-top:6px}
+.verdict-range{font-size:13px;color:var(--cream-muted);margin-top:4px}
+.verdict-range b{color:var(--cream);font-weight:500}
+
+/* ── gap hero ── */
+.gap-hero{
+  margin:0 0 14px;
+  background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(142,84,94,.08));
+  border:1px solid var(--line);border-radius:18px;
+  padding:24px;text-align:center;
+}
+.gap-hero.good{background:linear-gradient(135deg,rgba(80,160,100,.10),rgba(60,130,80,.06));border-color:rgba(80,160,100,.25)}
+.gap-label{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--rose-light);font-weight:600;margin-bottom:8px}
+.gap-label.good{color:#7DC898}
+.gap-amount{font-family:var(--serif);font-size:clamp(40px,12vw,60px);font-weight:700;line-height:1;color:var(--rose-light)}
+.gap-amount.good{color:#7DC898}
+.gap-sub{font-size:13px;color:var(--cream-muted);margin-top:6px;line-height:1.5}
+
+/* ── result cards ── */
+.r-card{background:linear-gradient(160deg,var(--ink-soft),var(--panel));border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:10px}
+.r-card-head{padding:13px 18px 11px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px}
+.r-card-label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--rose);font-weight:600}
+.r-card-body{padding:14px 18px}
+.r-card-val{font-size:15px;color:var(--cream);line-height:1.65}
+
+/* ── math grid ── */
+.math-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.math-cell{background:#0D0E09;border:1px solid var(--line-soft);border-radius:12px;padding:14px;text-align:center}
+.math-cell-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cream-muted);font-weight:500;margin-bottom:4px}
+.math-cell-val{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--cream)}
+.math-cell-val.highlight{color:var(--rose-light)}
+
+/* ── copy btn ── */
+.copy-btn{display:flex;align-items:center;gap:6px;margin-top:10px;background:transparent;border:1px solid var(--line);color:var(--cream-muted);font-family:var(--sans);font-weight:500;font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.copy-btn:hover{border-color:var(--rose);color:var(--rose-light)}
+.copy-btn.copied{border-color:var(--rose);color:var(--rose-light);background:rgba(201,168,76,.08)}
+
+/* ── nav / footer ── */
+.nav-row{display:flex;gap:10px;margin-top:20px}
+.nav-row .btn{margin-top:0}
+.restart-row{text-align:center;margin-top:14px}
+.restart-btn{background:transparent;border:none;color:var(--cream-muted);font-family:var(--sans);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.restart-btn:hover{color:var(--rose-light)}
+.footer{text-align:center;margin-top:40px;color:#4A4830;font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+.divider{height:1px;background:var(--line);margin:20px 0}
+
+@media(max-width:480px){.row2{flex-direction:column;gap:0}.math-grid{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <span class="brand-sm">Mission to Monetize</span>
+    <div class="steps-row">
+      <div class="step-pip active" id="pip-1"></div>
+      <div class="step-pip" id="pip-2"></div>
+    </div>
+    <span class="step-label" id="step-label">Step 1 of 2</span>
+  </div>
+</div>
+
+<div class="hero-wrap">
+  <h1 class="hero">Stop <em>undercharging.</em></h1>
+  <p class="hero-sub">You built something worth more than $17. Answer five questions and get the price to prove it — with the math and the launch play to back it up.</p>
+</div>
+
+<!-- ── STAGE 1 — Intake ── -->
+<div class="stage active" id="stage-1">
+  <div class="eyebrow">Pricing intake</div>
+  <div class="panel">
+
+    <div class="field">
+      <label for="pname">What's your product called?</label>
+      <input id="pname" type="text" placeholder="e.g. VA Skill Translator, PCS Move Checklist, Hook Generator">
+      <div class="hint">Optional — but makes your results feel personal.</div>
+    </div>
+
+    <div class="field">
+      <label for="ptype">What type of product is it?</label>
+      <select id="ptype">
+        <option value="">Select</option>
+        <option value="47">Interactive tool / tiny app</option>
+        <option value="60">Mini-course or video workshop</option>
+        <option value="37">Template, kit, or system</option>
+        <option value="28">Prompt pack / AI bundle</option>
+        <option value="22">Planner or printable</option>
+        <option value="18">Ebook or PDF guide</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="outcome">What does it actually do for the buyer?</label>
+      <select id="outcome">
+        <option value="">Select</option>
+        <option value="money|it directly puts money in their pocket or saves them real money">Makes or saves them money</option>
+        <option value="frust|it removes a real, painful frustration they hit every day">Removes a painful daily frustration</option>
+        <option value="time|it saves them significant real time">Saves them significant time</option>
+        <option value="org|it helps them feel organized, confident, and inspired">Organizes or inspires them</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="aud">Who's buying it?</label>
+      <select id="aud">
+        <option value="">Select</option>
+        <option value="biz|business owners and entrepreneurs who invest to earn">Business owners / entrepreneurs</option>
+        <option value="creator|creators and side-hustlers building income">Creators / side-hustlers</option>
+        <option value="vet|veterans and military community members">Veterans / military community</option>
+        <option value="personal|personal-use buyers">Personal use / hobbyists</option>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="ai">Does AI do the work for them?</label>
+        <select id="ai">
+          <option value="">Select</option>
+          <option value="yes">Yes — it does the heavy lifting</option>
+          <option value="some">Somewhat</option>
+          <option value="no">No — they do the work</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="depth">How deep is it?</label>
+        <select id="depth">
+          <option value="">Select</option>
+          <option value="0.9">Quick & simple</option>
+          <option value="1.0">Focused & solid</option>
+          <option value="1.2">Comprehensive</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="cur">Your current price (optional)</label>
+      <input id="cur" type="number" inputmode="numeric" placeholder="e.g. 17">
+      <div class="hint">Leave blank if you haven't priced it yet.</div>
+    </div>
+
+    <button class="btn" onclick="calculate()">Calculate my price →</button>
+    <div class="status" id="status-1"></div>
+  </div>
+  <div class="footer" style="margin-top:28px">Mission to Monetize · theladydivibe.com</div>
+</div>
+
+<!-- ── STAGE 2 — Verdict ── -->
+<div class="stage" id="stage-2">
+
+  <div class="verdict-hero">
+    <div class="verdict-eyebrow">Your price verdict</div>
+    <div class="verdict-price" id="v-price"></div>
+    <div class="verdict-product" id="v-product"></div>
+    <div class="verdict-range">Confident range: <b id="v-floor"></b> – <b id="v-stretch"></b></div>
+  </div>
+
+  <!-- Gap / reality check -->
+  <div class="gap-hero" id="gap-hero">
+    <div class="gap-label" id="gap-label">Money left on the table per sale</div>
+    <div class="gap-amount" id="gap-amount"></div>
+    <div class="gap-sub" id="gap-sub"></div>
+  </div>
+
+  <div class="eyebrow">The breakdown</div>
+
+  <div class="r-card">
+    <div class="r-card-head"><div class="r-card-label">Why this price</div></div>
+    <div class="r-card-body">
+      <div class="r-card-val" id="v-why"></div>
+      <button class="copy-btn" id="cb-why" onclick="copyEl('v-why','cb-why')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+  </div>
+
+  <div class="r-card">
+    <div class="r-card-head"><div class="r-card-label">The math</div></div>
+    <div class="r-card-body">
+      <div class="math-grid" id="v-math-grid"></div>
+    </div>
+  </div>
+
+  <div class="r-card">
+    <div class="r-card-head"><div class="r-card-label">Launch play</div></div>
+    <div class="r-card-body">
+      <div class="r-card-val" id="v-launch"></div>
+      <button class="copy-btn" id="cb-launch" onclick="copyEl('v-launch','cb-launch')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+  </div>
+
+  <div class="r-card">
+    <div class="r-card-head"><div class="r-card-label">Ready-to-post pricing caption</div></div>
+    <div class="r-card-body">
+      <div class="r-card-val" id="v-caption"></div>
+      <button class="copy-btn" id="cb-caption" onclick="copyEl('v-caption','cb-caption')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy caption
+      </button>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-ghost" onclick="goBack()">← Back</button>
+    <button class="btn" onclick="reset()">↻ Price another product</button>
+  </div>
+
+  <div class="footer" style="margin-top:36px">Mission to Monetize · links.theladydivibe.com</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const money = n => '$' + n.toLocaleString();
+
+const LADDER = [17,24,27,33,37,47,57,67,77,97,127,147,197];
+function snap(v){let b=LADDER[0],bd=1e9;for(const p of LADDER){const d=Math.abs(p-v);if(d<bd){bd=d;b=p;}}return b;}
+function idxOf(v){return LADDER.indexOf(v);}
+
+const OUT  = {money:1.5, frust:1.3, time:1.25, org:0.9};
+const AUD  = {biz:1.4, creator:1.1, vet:1.25, personal:0.85};
+const AIW  = {yes:1.25, some:1.1, no:1.0};
+
+function showStage(n){
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+  $('stage-'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('pip-1').className = 'step-pip' + (n>1?' done':' active');
+  $('pip-2').className = 'step-pip' + (n===2?' active':'');
+  $('step-label').textContent = n===1 ? 'Step 1 of 2' : 'Step 2 of 2 — Your verdict';
+}
+function goBack(){ showStage(1); }
+
+function calculate(){
+  const pname = $('pname').value.trim();
+  const base  = parseFloat($('ptype').value);
+  const outRaw = $('outcome').value || '|';
+  const [oK, oFrag] = outRaw.split('|');
+  const audRaw = $('aud').value || '|';
+  const [aK, aFrag] = audRaw.split('|');
+  const iK    = $('ai').value;
+  const depth = parseFloat($('depth').value);
+  const cur   = parseFloat($('cur').value);
+
+  if(!base || !oK || !aK || !iK || !depth){
+    $('status-1').textContent = 'Fill in every field (current price is optional).';
+    $('status-1').classList.add('show');
+    return;
+  }
+  $('status-1').classList.remove('show');
+
+  const raw = base * OUT[oK] * AUD[aK] * AIW[iK] * depth;
+  const rec = snap(raw);
+  const ri  = idxOf(rec);
+  const floor   = LADDER[Math.max(0, ri-2)];
+  const stretch = LADDER[Math.min(LADDER.length-1, ri+2)];
+  const label   = pname || 'your product';
+
+  // ── populate verdict hero ──
+  $('v-price').textContent   = money(rec);
+  $('v-product').textContent = pname ? `Recommended price for "${pname}"` : '';
+  $('v-floor').textContent   = money(floor);
+  $('v-stretch').textContent = money(stretch);
+
+  // ── gap block ──
+  const gh = $('gap-hero');
+  const gl = $('gap-label');
+  const ga = $('gap-amount');
+  const gs = $('gap-sub');
+  if(!isNaN(cur)){
+    if(rec > cur){
+      const perSale = rec - cur;
+      const per100  = perSale * 100;
+      gh.className = 'gap-hero';
+      gl.className = 'gap-label'; gl.textContent = 'Money left on the table — per sale';
+      ga.className = 'gap-amount'; ga.textContent = money(perSale);
+      gs.textContent = `You're charging ${money(cur)}. That's ${money(perSale)} lost every single sale — ${money(per100)} across 100 sales. That's a pricing problem, not an audience problem.`;
+    } else if(cur <= stretch){
+      gh.className = 'gap-hero good';
+      gl.className = 'gap-label good'; gl.textContent = 'You\'re already in range';
+      ga.className = 'gap-amount good'; ga.textContent = money(cur);
+      gs.textContent = `${money(cur)} lands right in your confident range. Hold the line. Don't discount.`;
+    } else {
+      gh.className = 'gap-hero';
+      gl.className = 'gap-label'; gl.textContent = 'You\'re at the top of your range';
+      ga.className = 'gap-amount'; ga.textContent = money(cur);
+      gs.textContent = `${money(cur)} is above the confident range. That can work — but your sales page needs to sell the outcome hard. Make sure every word earns the price.`;
+    }
+    gh.style.display = 'block';
+  } else {
+    gh.style.display = 'none';
+  }
+
+  // ── why ──
+  const audLabel = aFrag || 'your audience';
+  const outLabel = oFrag || 'delivers a real outcome';
+  const aiLabel  = iK === 'yes' ? ', and the tool does the heavy lifting for them' : iK === 'some' ? ', with some automation doing the work' : '';
+  $('v-why').textContent = `Because ${outLabel} for ${audLabel}${aiLabel} — buyers pay for the outcome, not the page count. A ${$('ptype').options[$('ptype').selectedIndex].text.toLowerCase()} that delivers this result is worth more than any static download.`;
+
+  // ── math grid ──
+  const mg = $('v-math-grid'); mg.innerHTML = '';
+  const cells = [
+    {label:`At ${money(floor)} (launch)`, val:money(floor*100), sub:'from 100 sales'},
+    {label:`At ${money(rec)} (anchor)`,   val:money(rec*100),   sub:'from 100 sales', hi:true},
+    {label:`At ${money(stretch)} (max)`,  val:money(stretch*100), sub:'from 100 sales'},
+    {label:'vs. $17 PDF',                 val:money(1700),       sub:'from 100 sales'},
+  ];
+  cells.forEach(c=>{
+    const d = document.createElement('div');
+    d.className = 'math-cell';
+    d.innerHTML = `<div class="math-cell-label">${c.label}</div><div class="math-cell-val${c.hi?' highlight':''}">${c.val}</div><div style="font-size:11px;color:var(--cream-muted);margin-top:2px">${c.sub}</div>`;
+    mg.appendChild(d);
+  });
+
+  // ── launch play ──
+  $('v-launch').textContent = `Launch ${label} at ${money(floor)} for your first 5–7 days — early buyers generate proof and reviews. Raise to ${money(rec)} after your first 10 sales. Only move to ${money(stretch)} once you've added a bonus, a case study, or a live element to justify the stretch.`;
+
+  // ── caption ──
+  const captionProduct = pname ? `the ${pname}` : 'this tool';
+  $('v-caption').textContent = `Most people don't have a pricing problem. They have a confidence problem. 🌹\n\nI priced ${captionProduct} at ${money(rec)} — and here's the math: 100 sales = ${money(rec*100)}. The same buyers purchasing a $17 PDF would hand me $1,700. Same audience. Same effort. Different price.\n\nIf you're ready to stop undercharging, comment BOSS and I'll send you the calculator I used. 👇\n\n#digitalproducts #m2mskool #missiontomonetize #veteranentrepreneur #digitalproducts #stopundercharging #pricingconfidence`;
+
+  showStage(2);
+}
+
+function reset(){
+  ['pname','cur'].forEach(id=>$(id).value='');
+  ['ptype','outcome','aud','ai','depth'].forEach(id=>$(id).selectedIndex=0);
+  $('status-1').classList.remove('show');
+  showStage(1);
+}
+
+function copyEl(srcId, btnId){
+  const text = $(srcId).textContent || '';
+  const btn  = $(btnId);
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.classList.add('copied');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},2000);
+  });
+}
+</script>
+</body>
+</html>
